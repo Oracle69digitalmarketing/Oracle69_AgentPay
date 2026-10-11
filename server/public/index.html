@@ -5,37 +5,116 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Oracle69 AgentPay — Monad Testnet Demo</title>
 <style>
-  :root { color-scheme: light dark; }
-  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
-  .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; border: 1px solid currentColor; font-size: 0.85rem; }
-  .warn { border: 2px solid currentColor; padding: 0.75rem 1rem; border-radius: 8px; margin: 1rem 0; }
-  label { display: block; margin-top: 0.75rem; font-weight: 600; }
-  input, textarea, button { width: 100%; box-sizing: border-box; padding: 0.5rem; margin-top: 0.25rem; font: inherit; }
-  textarea { min-height: 5rem; font-family: monospace; }
-  button { cursor: pointer; margin-top: 1rem; }
-  pre { white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid currentColor; border-radius: 8px; padding: 1rem; }
-  .ok { font-weight: 700; }
+  :root {
+    color-scheme: light dark;
+    --accent: #4f46e5;
+    --ok: #15803d;
+    --fail: #b91c1c;
+    --muted: #6b7280;
+    --card-border: #d1d5db;
+    --card-bg: rgba(127, 127, 127, 0.06);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0 auto;
+    max-width: 860px;
+    padding: 1.25rem 1rem 3rem;
+    line-height: 1.55;
+  }
+  header.top { border-bottom: 2px solid var(--accent); padding-bottom: 1rem; margin-bottom: 1.25rem; }
+  header.top h1 { margin: 0 0 0.25rem; font-size: 1.75rem; letter-spacing: 0.01em; }
+  header.top p { margin: 0.25rem 0; }
+  .tagline { font-style: italic; }
+  .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.75rem; }
+  .badge {
+    display: inline-block; padding: 0.2rem 0.7rem; border-radius: 999px;
+    border: 1px solid currentColor; font-size: 0.82rem; white-space: nowrap;
+  }
+  .badge.net { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .warn {
+    border: 2px solid currentColor; border-radius: var(--radius);
+    padding: 0.8rem 1rem; margin: 1.25rem 0;
+  }
+  .card {
+    border: 1px solid var(--card-border); border-radius: var(--radius);
+    background: var(--card-bg); padding: 1rem 1.1rem; margin: 1.25rem 0;
+  }
+  .card h2 { margin: 0 0 0.5rem; font-size: 1.15rem; }
+  label { display: block; margin-top: 0.8rem; font-weight: 600; }
+  .hint { font-weight: 400; font-size: 0.85rem; color: var(--muted); display: block; margin-top: 0.15rem; }
+  input, textarea, button { width: 100%; max-width: 100%; padding: 0.6rem; margin-top: 0.3rem; font: inherit; border-radius: 6px; border: 1px solid var(--card-border); }
+  textarea { min-height: 5.5rem; font-family: ui-monospace, monospace; font-size: 0.85rem; }
+  button {
+    cursor: pointer; margin-top: 1.1rem; min-height: 48px; font-weight: 700;
+    background: var(--accent); color: #fff; border: none;
+  }
+  button:disabled { opacity: 0.6; cursor: progress; }
+  .status { font-weight: 700; font-size: 1.05rem; }
+  dl.checks { display: grid; grid-template-columns: minmax(7rem, 11rem) 1fr; gap: 0.3rem 0.9rem; margin: 0.75rem 0; }
+  dl.checks dt { font-weight: 600; overflow-wrap: anywhere; }
+  dl.checks dd { margin: 0; overflow-wrap: anywhere; word-break: break-word; }
+  .pill { display: inline-block; padding: 0.1rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: 700; border: 1px solid currentColor; }
+  .pill.pass { color: var(--ok); }
+  .pill.fail { color: var(--fail); }
+  .pill.na { color: var(--muted); }
+  pre {
+    white-space: pre-wrap; overflow-wrap: anywhere; word-break: break-word;
+    border: 1px solid var(--card-border); border-radius: var(--radius);
+    padding: 1rem; font-size: 0.82rem; max-width: 100%; overflow-x: auto;
+  }
+  details { margin-top: 0.75rem; }
+  details summary { cursor: pointer; font-weight: 600; }
+  ul.reasons { margin: 0.5rem 0; padding-left: 1.25rem; }
+  ul.reasons code { overflow-wrap: anywhere; }
+  footer { margin-top: 2rem; font-size: 0.85rem; color: var(--muted); }
+  @media (min-width: 640px) {
+    header.top h1 { font-size: 2.1rem; }
+    .card { padding: 1.25rem 1.5rem; }
+  }
 </style>
 </head>
 <body>
-<h1>Oracle69 AgentPay</h1>
-<p><em>AI proposes. Policy governs. Humans authorize. Blockchain settles.</em></p>
-<p><span class="badge">Monad Testnet · chain 10143 · native MON only</span></p>
-<div class="warn"><strong>This demo does not execute payments.</strong> It runs read-only preflight checks (policy, approval, network, fees, balance) and displays the result. Nothing is signed, submitted, or settled here.</div>
+<header class="top">
+  <h1>Oracle69 AgentPay</h1>
+  <p class="tagline">AI proposes. Policy governs. Humans authorize. Blockchain settles.</p>
+  <div class="badges">
+    <span class="badge net">Monad Testnet · chain 10143 · native MON only</span>
+    <span class="badge">Max payment 1 MON</span>
+    <span class="badge">Read-only demo</span>
+  </div>
+</header>
 
-<form id="preview-form">
-  <label for="amount">Amount (MON, decimal, max 1)</label>
-  <input id="amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="0.001" value="0.001">
-  <label for="requestId">Request ID (optional — generated if empty)</label>
-  <input id="requestId" name="requestId" autocomplete="off" placeholder="demo-req-1">
-  <label for="proof">Approval proof JSON (optional — leave empty to preview without approval)</label>
-  <textarea id="proof" name="proof" spellcheck="false" placeholder='{"signature":"0x…","domainId":"…","policyVersion":"…","policyDigest":"0x…"}'></textarea>
-  <button type="submit">Run read-only preview</button>
-</form>
+<div class="warn" role="note"><strong>This demo does not execute payments.</strong> It runs read-only preflight checks (policy, approval, network, fees, balance) and displays the result. Nothing is signed, submitted, or settled here.</div>
 
-<h2>Result</h2>
-<p id="status" class="ok">No preview run yet.</p>
-<pre id="result">—</pre>
+<section class="card" aria-labelledby="form-heading">
+  <h2 id="form-heading">Payment preview</h2>
+  <form id="preview-form">
+    <label for="amount">Amount (MON, decimal, max 1)</label>
+    <input id="amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="0.001" value="0.001" required>
+    <span class="hint" id="amount-hint">Decimal MON amount greater than 0 and at most 1 MON. Converted to exact integer wei — never rounded.</span>
+    <label for="requestId">Request ID (optional)</label>
+    <input id="requestId" name="requestId" autocomplete="off" placeholder="demo-req-1">
+    <span class="hint">A unique label for this request. The server generates one if omitted.</span>
+    <label for="proof">Approval proof JSON (optional)</label>
+    <textarea id="proof" name="proof" spellcheck="false" aria-describedby="proof-hint" placeholder='{"signature":"0x…","domainId":"…","policyVersion":"…","policyDigest":"0x…"}'></textarea>
+    <span class="hint" id="proof-hint">Paste an externally created EIP-712 approval to verify it. Pasting here does not create or sign an authorization, and the proof is never stored.</span>
+    <button type="submit" id="run-button">Run read-only preview</button>
+  </form>
+</section>
+
+<section class="card" aria-labelledby="result-heading" aria-live="polite">
+  <h2 id="result-heading">Result</h2>
+  <p id="status" class="status">No preview run yet.</p>
+  <div id="checks"></div>
+  <details>
+    <summary>Raw result (for debugging)</summary>
+    <pre id="result">—</pre>
+  </details>
+</section>
+
+<footer>Oracle69 AgentPay · policy-controlled payments for AI agents · Monad Testnet demonstration only.</footer>
 
 <script>
 (function () {
@@ -45,17 +124,145 @@
   var requestIdEl = document.getElementById("requestId");
   var proofEl = document.getElementById("proof");
   var statusEl = document.getElementById("status");
+  var checksEl = document.getElementById("checks");
   var resultEl = document.getElementById("result");
+  var runButton = document.getElementById("run-button");
 
-  function show(obj, ok) {
-    statusEl.textContent = ok ? "Preview complete — informational only, NOT an authorization to execute."
-      : "Preview rejected — see reasons. Nothing was executed.";
-    resultEl.textContent = JSON.stringify(obj, null, 2);
+  var POLICY_CODES = ["INVALID_REQUEST", "INVALID_AMOUNT", "INVALID_ADDRESS", "INVALID_ASSET", "NOT_ALLOWLISTED", "EXCEEDS_LIMIT", "INVALID_CONFIG"];
+  var APPROVAL_CODES = ["MISSING_APPROVAL", "INVALID_SIGNATURE", "WRONG_SIGNER", "INVALID_PROOF", "EXPIRED_REQUEST"];
+  var NETWORK_CODES = ["WRONG_CHAIN", "RPC_UNAVAILABLE"];
+  var FEE_CODES = ["FEE_POLICY_REJECTED", "ESTIMATION_FAILED"];
+  var BALANCE_CODES = ["INSUFFICIENT_FUNDS"];
+
+  function el(tag, text, cls) {
+    var node = document.createElement(tag);
+    if (cls) node.className = cls;
+    node.textContent = text;
+    return node;
+  }
+
+  function pill(state) {
+    return el("span", state, "pill " + (state === "PASS" ? "pass" : state === "FAIL" ? "fail" : "na"));
+  }
+
+  function sectionState(ok, codes, wanted) {
+    if (ok) return "PASS";
+    for (var i = 0; i < codes.length; i++) {
+      if (wanted.indexOf(codes[i]) !== -1) return "FAIL";
+    }
+    return "NOT VERIFIED";
+  }
+
+  function fmtWei(value) {
+    try {
+      var wei = BigInt(value);
+      var negative = wei < 0n;
+      if (negative) wei = -wei;
+      var str = wei.toString().padStart(19, "0");
+      var whole = str.slice(0, -18).replace(/^0+(?=\d)/, "");
+      var frac = str.slice(-18).replace(/0+$/, "");
+      return (negative ? "-" : "") + whole + (frac ? "." + frac : "") + " MON (" + value + " wei)";
+    } catch (e) {
+      return String(value);
+    }
+  }
+
+  function clearChecks() {
+    while (checksEl.firstChild) checksEl.removeChild(checksEl.firstChild);
+  }
+
+  function addRow(list, label, valueNode) {
+    var dt = el("dt", label);
+    var dd = document.createElement("dd");
+    dd.appendChild(valueNode);
+    list.appendChild(dt);
+    list.appendChild(dd);
+  }
+
+  function showError(message) {
+    statusEl.textContent = "Preview rejected — see reasons. Nothing was executed.";
+    clearChecks();
+    resultEl.textContent = JSON.stringify({ error: message }, null, 2);
+  }
+
+  function show(data) {
+    resultEl.textContent = JSON.stringify(data, null, 2);
+    clearChecks();
+    var preview = data && data.preview;
+    if (!preview || typeof preview.ok !== "boolean") {
+      statusEl.textContent = "Preview rejected — see reasons. Nothing was executed.";
+      return;
+    }
+    var codes = [];
+    if (!preview.ok && Array.isArray(preview.reasons)) {
+      for (var i = 0; i < preview.reasons.length; i++) {
+        if (preview.reasons[i] && typeof preview.reasons[i].code === "string") codes.push(preview.reasons[i].code);
+      }
+    }
+    var list = el("dl", "", "checks");
+    if (preview.ok) {
+      statusEl.textContent = "Preview complete — informational only, NOT an authorization to execute.";
+      addRow(list, "Overall", pill("PASS"));
+      addRow(list, "Recipient", el("span", String(preview.recipient)));
+      addRow(list, "Amount", el("span", fmtWei(preview.amountWei) + " · asset " + String(preview.asset)));
+      addRow(list, "Request", el("span", "id " + String(preview.requestId) + " · nonce " + String(preview.nonce)));
+      addRow(list, "Policy", pill("PASS"));
+      addRow(list, "Policy version", el("span", String(preview.policyVersion)));
+      addRow(list, "Policy digest", el("span", String(preview.policyDigest)));
+      var approval = preview.approval || {};
+      addRow(list, "Approval", pill(approval.verified === true ? "PASS" : "NOT VERIFIED"));
+      addRow(
+        list,
+        "Approval detail",
+        el("span", approval.verified === true
+          ? "Verified human approval from " + String(approval.approver)
+          : "No verified approval supplied — policy and preflight checks passed without one.")
+      );
+      addRow(list, "Network", pill("PASS"));
+      addRow(list, "Chain", el("span", String(preview.network) + " · chain " + String(preview.chainId)));
+      addRow(list, "Fees", pill("PASS"));
+      addRow(
+        list,
+        "Fee estimate",
+        el("span", "gas " + String(preview.chain.gasEstimate) + " · max fee " + String(preview.chain.maxFeePerGasWei) + " wei")
+      );
+      addRow(list, "Balance", pill("PASS"));
+      addRow(list, "Balance detail", el("span", fmtWei(preview.chain.senderBalanceWei) + " covers amount plus fee"));
+    } else {
+      statusEl.textContent = "Preview rejected — see reasons. Nothing was executed.";
+      addRow(list, "Overall", pill("FAIL"));
+      addRow(list, "Policy", pill(sectionState(false, codes, POLICY_CODES)));
+      var ap = preview.approval;
+      var approvalState = ap && ap.present === true ? (ap.verified === true ? "PASS" : "FAIL") : "NOT PROVIDED";
+      addRow(list, "Approval", pill(approvalState));
+      addRow(list, "Network", pill(sectionState(false, codes, NETWORK_CODES)));
+      addRow(list, "Fees", pill(sectionState(false, codes, FEE_CODES)));
+      addRow(list, "Balance", pill(sectionState(false, codes, BALANCE_CODES)));
+      var ul = document.createElement("ul");
+      ul.className = "reasons";
+      for (var j = 0; j < codes.length; j++) {
+        var reason = (preview.reasons || [])[j] || {};
+        var li = document.createElement("li");
+        li.appendChild(el("code", String(reason.code || "UNKNOWN")));
+        li.appendChild(document.createTextNode(": " + String(reason.message || "")));
+        ul.appendChild(li);
+      }
+      if (codes.length > 0) {
+        var dt = el("dt", "Reasons");
+        var dd = document.createElement("dd");
+        dd.appendChild(ul);
+        list.appendChild(dt);
+        list.appendChild(dd);
+      }
+    }
+    checksEl.appendChild(list);
   }
 
   form.addEventListener("submit", function (ev) {
     ev.preventDefault();
+    runButton.disabled = true;
     statusEl.textContent = "Running read-only preview…";
+    clearChecks();
     resultEl.textContent = "…";
     var body = { amountMon: amountEl.value };
     if (requestIdEl.value.trim() !== "") body.requestId = requestIdEl.value.trim();
@@ -64,7 +271,8 @@
       try {
         body.proof = JSON.parse(proofText);
       } catch (e) {
-        show({ error: "proof field must be valid JSON or empty" }, false);
+        runButton.disabled = false;
+        showError("proof field must be valid JSON or empty");
         return;
       }
     }
@@ -74,10 +282,12 @@
       body: JSON.stringify(body),
     }).then(function (res) {
       return res.json().then(function (data) {
-        show(data, !!(data && data.preview && data.preview.ok === true));
+        runButton.disabled = false;
+        show(data);
       });
     }).catch(function () {
-      show({ error: "request failed" }, false);
+      runButton.disabled = false;
+      showError("request failed");
     });
   });
 })();

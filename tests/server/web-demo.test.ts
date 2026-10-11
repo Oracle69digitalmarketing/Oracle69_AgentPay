@@ -179,6 +179,36 @@ describe("demo server HTTP behavior (mock chain only)", () => {
     expect(chain.sendLog.length).toBe(0);
   });
 
+  it("served page exposes the structured dashboard contract", async () => {
+    const base = await start({ chain: new MockChainPort() });
+    const res = await get(base, "/");
+    expect(res.status).toBe(200);
+    // Structured result surface (populated client-side from real responses).
+    for (const id of ["preview-form", "amount", "requestId", "proof", "run-button", "status", "checks", "result"]) {
+      expect(res.text, id).toContain(`id="${id}"`);
+    }
+    // Raw-result view kept for debugging, collapsed behind <details>.
+    expect(res.text).toContain("<details>");
+    // Explicit product identity and safety disclosure.
+    expect(res.text).toContain("chain 10143");
+    expect(res.text).toContain("Max payment 1 MON");
+    expect(res.text).toContain("Nothing is signed, submitted, or settled here");
+    expect(res.text).toContain("Run read-only preview");
+    // Proof field explains non-authorizing semantics.
+    expect(res.text).toContain("does not create or sign an authorization");
+    // Rendering is text-only: no unsafe HTML insertion primitives.
+    expect(res.text).not.toContain("innerHTML");
+    expect(res.text).not.toContain("outerHTML");
+    expect(res.text).not.toContain("document.write");
+    // Responsive baseline: viewport meta, fluid layout, tap-sized action.
+    expect(res.text).toContain('name="viewport"');
+    expect(res.text).toContain("max-width");
+    expect(res.text).toContain("min-height: 48px");
+    // No execution/submission surface in markup or script references.
+    expect(res.text).not.toContain("sendRawTransaction");
+    expect(res.text).not.toContain("wallet");
+  });
+
   it("rejects invalid amounts and over-ceiling amounts", async () => {
     const base = await start({ chain: new MockChainPort() });
     for (const bad of ["abc", "-1", "", "1.0000000000000000001", "2", "1.000000000000000001"]) {
