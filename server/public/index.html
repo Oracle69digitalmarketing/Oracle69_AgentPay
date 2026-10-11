@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Oracle69 AgentPay — Monad Testnet Demo</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
+  .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; border: 1px solid currentColor; font-size: 0.85rem; }
+  .warn { border: 2px solid currentColor; padding: 0.75rem 1rem; border-radius: 8px; margin: 1rem 0; }
+  label { display: block; margin-top: 0.75rem; font-weight: 600; }
+  input, textarea, button { width: 100%; box-sizing: border-box; padding: 0.5rem; margin-top: 0.25rem; font: inherit; }
+  textarea { min-height: 5rem; font-family: monospace; }
+  button { cursor: pointer; margin-top: 1rem; }
+  pre { white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid currentColor; border-radius: 8px; padding: 1rem; }
+  .ok { font-weight: 700; }
+</style>
+</head>
+<body>
+<h1>Oracle69 AgentPay</h1>
+<p><em>AI proposes. Policy governs. Humans authorize. Blockchain settles.</em></p>
+<p><span class="badge">Monad Testnet · chain 10143 · native MON only</span></p>
+<div class="warn"><strong>This demo does not execute payments.</strong> It runs read-only preflight checks (policy, approval, network, fees, balance) and displays the result. Nothing is signed, submitted, or settled here.</div>
+
+<form id="preview-form">
+  <label for="amount">Amount (MON, decimal, max 1)</label>
+  <input id="amount" name="amount" inputmode="decimal" autocomplete="off" placeholder="0.001" value="0.001">
+  <label for="requestId">Request ID (optional — generated if empty)</label>
+  <input id="requestId" name="requestId" autocomplete="off" placeholder="demo-req-1">
+  <label for="proof">Approval proof JSON (optional — leave empty to preview without approval)</label>
+  <textarea id="proof" name="proof" spellcheck="false" placeholder='{"signature":"0x…","domainId":"…","policyVersion":"…","policyDigest":"0x…"}'></textarea>
+  <button type="submit">Run read-only preview</button>
+</form>
+
+<h2>Result</h2>
+<p id="status" class="ok">No preview run yet.</p>
+<pre id="result">—</pre>
+
+<script>
+(function () {
+  "use strict";
+  var form = document.getElementById("preview-form");
+  var amountEl = document.getElementById("amount");
+  var requestIdEl = document.getElementById("requestId");
+  var proofEl = document.getElementById("proof");
+  var statusEl = document.getElementById("status");
+  var resultEl = document.getElementById("result");
+
+  function show(obj, ok) {
+    statusEl.textContent = ok ? "Preview complete — informational only, NOT an authorization to execute."
+      : "Preview rejected — see reasons. Nothing was executed.";
+    resultEl.textContent = JSON.stringify(obj, null, 2);
+  }
+
+  form.addEventListener("submit", function (ev) {
+    ev.preventDefault();
+    statusEl.textContent = "Running read-only preview…";
+    resultEl.textContent = "…";
+    var body = { amountMon: amountEl.value };
+    if (requestIdEl.value.trim() !== "") body.requestId = requestIdEl.value.trim();
+    var proofText = proofEl.value.trim();
+    if (proofText !== "") {
+      try {
+        body.proof = JSON.parse(proofText);
+      } catch (e) {
+        show({ error: "proof field must be valid JSON or empty" }, false);
+        return;
+      }
+    }
+    fetch("/api/preview", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(body),
+    }).then(function (res) {
+      return res.json().then(function (data) {
+        show(data, !!(data && data.preview && data.preview.ok === true));
+      });
+    }).catch(function () {
+      show({ error: "request failed" }, false);
+    });
+  });
+})();
+</script>
+</body>
+</html>

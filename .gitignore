@@ -141,3 +141,15 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Oracle69 AgentPay M2 — SQLite replay-store runtime artifacts (databases are
+# environment state, never source; schema lives in src/auth/store/schema.sql)
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite-journal
+data/*.db*

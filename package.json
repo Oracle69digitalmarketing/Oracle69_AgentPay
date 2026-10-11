@@ -1,0 +1,29 @@
+{
+  "name": "@oracle69/agentpay",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Oracle69 AgentPay — policy-controlled payment infrastructure for AI agents on Monad (M1: deterministic policy engine)",
+  "type": "module",
+  "packageManager": "pnpm@11.20.0",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "build:server": "tsc -p tsconfig.json --noEmit false --outDir dist --declaration false --sourceMap false && cp -r server/public dist/server/public",
+    "start": "node dist/server/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "better-sqlite3": "13.0.3",
+    "viem": "2.57.4"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "7.6.13",
+    "@types/node": "22.7.4",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
