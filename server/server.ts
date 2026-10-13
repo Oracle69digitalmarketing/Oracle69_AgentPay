@@ -33,6 +33,7 @@ import {
   type PreviewResult,
   type ReadOnlyChain,
 } from "../src/preview/index.js";
+import { processQwenIntent } from "../src/qwen/adapter.js";
 import type { Address } from "viem";
 
 // Minimal fetch typing (global fetch exists on Node 22; DOM lib is off).
@@ -348,6 +349,84 @@ export function createPreviewServer(options: ServerOptions): Server {
           jsonBody(res, 200, {
             banner: "INFORMATIONAL PREFLIGHT — NOT AUTHORIZATION TO EXECUTE — NO BROADCAST",
             preview,
+          });
+          return;
+        }
+        if (url.pathname === "/api/qwen-intent") {
+          if (req.method !== "POST") {
+            jsonBody(res, 405, { error: "method not allowed" });
+            return;
+          }
+          if (!allowRequest(clientIp(req), Date.now())) {
+            jsonBody(res, 429, { error: "rate limit exceeded" });
+            return;
+          }
+          let raw: string;
+          try {
+            raw = await readBody(req, MAX_BODY_BYTES);
+          } catch {
+            jsonBody(res, 413, { error: "request body too large or unreadable" });
+            return;
+          }
+          let body: unknown;
+          try {
+            body = JSON.parse(raw) as unknown;
+          } catch {
+            jsonBody(res, 400, { error: "request body must be valid JSON" });
+            return;
+          }
+          if (!isRecord(body)) {
+            jsonBody(res, 400, { error: "request body must be a JSON object" });
+            return;
+          }
+          if (!("prompt" in body) || typeof body.prompt !== "string" || body.prompt.trim().length === 0) {
+            jsonBody(res, 400, { error: "prompt is required and must be a non-empty string" });
+            return;
+          }
+          if (body.prompt.length > 500) {
+            jsonBody(res, 400, { error: "prompt must not exceed 500 characters" });
+            return;
+          }
+          const prompt = body.prompt.trim();
+
+          // Use the fixed demo auth config (server-side only, never from client)
+          const authConfig = {
+            policy: {
+              approvedRecipients: [DEMO_RECIPIENT],
+              maxPerPaymentWei: DEMO_MAX_WEI,
+              allowedChainId: MONAD_TESTNET_CHAIN_ID,
+              requireHumanApproval: true,
+            },
+            approver: DEMO_APPROVER,
+            domainId: DEMO_DOMAIN_ID,
+            policyVersion: CURRENT_POLICY_VERSION,
+          };
+
+          // Use the server port (already allowlisted for Monad Testnet)
+          const chain = options.chain;
+
+          // Call the Qwen adapter — fail closed on any error
+          const now = nowFn();
+          let qwenResult;
+          try {
+            qwenResult = await processQwenIntent(prompt, now, authConfig, chain);
+          } catch {
+            jsonBody(res, 500, { error: "qwen adapter internal error" });
+            return;
+          }
+
+          // Return the structured 4D result
+          jsonBody(res, 200, {
+            ok: qwenResult.ok,
+            policyDecision: {
+              allowed: qwenResult.policyDecision.allowed,
+              requiresApproval: qwenResult.policyDecision.requiresApproval,
+              reasons: qwenResult.policyDecision.reasons,
+            },
+            approvalStatus: qwenResult.approvalStatus,
+            previewResult: qwenResult.previewResult,
+            qwenIntent: qwenResult.qwenIntent,
+            isExecutable: qwenResult.isExecutable,
           });
           return;
         }
